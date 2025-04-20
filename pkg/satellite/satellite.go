@@ -1,6 +1,8 @@
 package satellite
 
 import (
+	"time"
+
 	"github.com/Mohammed-Ashour/go-satellite-v2/pkg/tle"
 )
 
@@ -121,4 +123,13 @@ type Satellite struct {
 func NewSatelliteFromTLE(tle tle.TLE, gravity Gravity) Satellite {
 	sat := ParseTLE(tle.Line1.LineString, tle.Line2.LineString, gravity)
 	return sat
+}
+
+// locate returns the latitude, longitude, altitude, and velocity of the satellite at a given time
+func (sat Satellite) Locate(t time.Time) (latitude float64, longitude float64, altitude float64, velocity float64) {
+	pos, _ := Propagate(sat, t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute(), t.Second())
+	gmst := GSTimeFromDate(t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute(), t.Second())
+	alt, vel, latlon := ECIToLLA(pos, gmst)
+	return latlon.Latitude, latlon.Longitude, alt, vel
+
 }

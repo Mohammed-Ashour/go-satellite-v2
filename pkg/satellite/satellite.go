@@ -28,8 +28,6 @@ type Satellite struct {
 	argpo float64
 	mo    float64
 	no    float64
-	alta  float64
-	altp  float64
 
 	method        string
 	operationmode string

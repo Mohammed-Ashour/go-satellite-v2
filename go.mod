@@ -1,7 +1,7 @@
 module github.com/Mohammed-Ashour/go-satellite-v2
 // This module is a fork of github.com/joshuaferrara/go-satellite
 
-go 1.13
+go 1.22
 
 require (
 	github.com/onsi/ginkgo v1.2.1-0.20160509182050-5437a97bf824

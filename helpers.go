@@ -38,8 +38,8 @@ func ParseTLE(line1, line2 string, gravConst Gravity) (sat Satellite) {
 
 	// LINE 1 BEGIN
 	sat.satnum = parseInt(strings.TrimSpace(line1[2:7]))
-	sat.epochyr = parseInt(line1[18:20])
-	sat.epochdays = parseFloat(line1[20:32])
+	sat.Epochyr = parseInt(line1[18:20])
+	sat.Epochdays = parseFloat(line1[20:32])
 
 	// These three can be negative / positive
 	sat.ndot = parseFloat(strings.Replace(line1[33:43], " ", "", 2))
@@ -75,17 +75,17 @@ func TLEToSat(line1, line2 string, gravConst Gravity) Satellite {
 	sat.mo = sat.mo * DEG2RAD
 
 	var year int64 = 0
-	if sat.epochyr < 57 {
-		year = sat.epochyr + 2000
+	if sat.Epochyr < 57 {
+		year = sat.Epochyr + 2000
 	} else {
-		year = sat.epochyr + 1900
+		year = sat.Epochyr + 1900
 	}
 
-	mon, day, hr, min, sec := days2mdhms(year, sat.epochdays)
+	mon, day, hr, min, sec := days2mdhms(year, sat.Epochdays)
 
-	sat.jdsatepoch = JDay(int(year), int(mon), int(day), int(hr), int(min), int(sec))
+	sat.Jdsatepoch = JDay(int(year), int(mon), int(day), int(hr), int(min), int(sec))
 
-	sgp4init(&opsmode, sat.jdsatepoch-2433281.5, &sat)
+	sgp4init(&opsmode, sat.Jdsatepoch-2433281.5, &sat)
 
 	return sat
 }

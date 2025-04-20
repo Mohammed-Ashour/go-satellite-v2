@@ -294,7 +294,7 @@ func initl(satn int64, grav GravConst, ecco, epoch, inclo, noIn float64, methodI
 // Calculates position and velocity vectors for given time
 func Propagate(sat Satellite, year int, month int, day, hours, minutes, seconds int) (position, velocity Vector3) {
 	j := JDay(year, month, day, hours, minutes, seconds)
-	m := (j - sat.jdsatepoch) * 1440
+	m := (j - sat.Jdsatepoch) * 1440
 	return sgp4(&sat, m)
 }
 

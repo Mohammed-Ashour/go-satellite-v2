@@ -1,5 +1,9 @@
 package satellite
 
+import (
+	"github.com/Mohammed-Ashour/go-satellite-v2/pkg/tle"
+)
+
 // Struct for holding satellite information during and before propagation
 type Satellite struct {
 	Line1 string `json:"TLE_LINE1"`
@@ -24,8 +28,6 @@ type Satellite struct {
 	argpo float64
 	mo    float64
 	no    float64
-	alta  float64
-	altp  float64
 
 	method        string
 	operationmode string
@@ -114,4 +116,9 @@ type Satellite struct {
 	xl2   float64
 	xlamo float64
 	atime float64
+}
+
+func NewSatelliteFromTLE(tle tle.TLE, gravity Gravity) Satellite {
+	sat := ParseTLE(tle.Line1.LineString, tle.Line2.LineString, gravity)
+	return sat
 }

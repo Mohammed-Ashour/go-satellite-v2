@@ -34,7 +34,6 @@ func dsinit(whichconst GravConst, cosim, emsq, argpo, s1, s2, s3, s4, s5, sinim,
 
 	xke := whichconst.xke
 
-	irez = 0
 	if 0.0034906585 < nm && nm < 0.0052359877 {
 		irez = 1
 	}

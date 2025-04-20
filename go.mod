@@ -7,7 +7,6 @@ go 1.22
 require (
 	github.com/onsi/ginkgo v1.2.1-0.20160509182050-5437a97bf824
 	github.com/onsi/gomega v0.0.0-20160516222431-c73e51675ad2
-	github.com/pkg/errors v0.9.1
 )
 
 require (

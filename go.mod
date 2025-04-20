@@ -1,4 +1,5 @@
-module github.com/joshuaferrara/go-satellite
+module github.com/Mohammed-Ashour/go-satellite-v2
+// This module is a fork of github.com/joshuaferrara/go-satellite
 
 go 1.13
 

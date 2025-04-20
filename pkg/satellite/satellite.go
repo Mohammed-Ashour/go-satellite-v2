@@ -121,7 +121,7 @@ type Satellite struct {
 }
 
 func NewSatelliteFromTLE(tle tle.TLE, gravity Gravity) Satellite {
-	sat := ParseTLE(tle.Line1.LineString, tle.Line2.LineString, gravity)
+	sat := TLEToSat(tle.Line1.LineString, tle.Line2.LineString, gravity)
 	return sat
 }
 

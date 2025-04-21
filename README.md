@@ -1,6 +1,7 @@
 # go-satellite-v2
+```go
 import "github.com/Mohammed-Ashour/go-satellite-v2/pkg/satellite"
-
+```
 A fork of [github.com/joshuaferrara/go-satellite](https://github.com/joshuaferrara/go-satellite) with improvements and additional features.
 
 ## Intro

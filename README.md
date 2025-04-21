@@ -1,83 +1,93 @@
-# satellite
-    import "github.com/joshuaferrara/go-satellite"
+# go-satellite-v2
+```go
+import "github.com/Mohammed-Ashour/go-satellite-v2/pkg/satellite"
+```
+A fork of [github.com/joshuaferrara/go-satellite](https://github.com/joshuaferrara/go-satellite) with improvements and additional features.
 
 ## Intro
 
-[![Go](https://github.com/joshuaferrara/go-satellite/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/joshuaferrara/go-satellite/actions/workflows/go.yml) [![GoDoc](https://godoc.org/github.com/joshuaferrara/go-satellite?status.svg)](https://godoc.org/github.com/joshuaferrara/go-satellite)
+This is a Go implementation of the SGP4 satellite propagation library, originally ported by Joshua Ferrara. The SGP4 model is used to track satellites and space debris based on two-line element (TLE) data.
 
-I decided to port the SGP4 library to GoLang as one of my first projects with the language. I've included a test suite to ensure accuracy.
+## Changes from Original
+
+This fork includes:
+- Added TLE parsing and validation abstraction
+- Improved code organization and package structure
+- Additional test coverage
+- Bug fixes and performance improvements
+- Better error handling
 
 ## Usage
 
-#### Constants
+```go
+import (
+    "github.com/Mohammed-Ashour/go-satellite-v2/pkg/satellite"
+    "github.com/Mohammed-Ashour/go-satellite-v2/pkg/tle"
+)
+```
+
+### TLE Handling
+
+```go
+// Parse TLE
+tle, err := tle.ParseTLE(line1, line2, name)
+
+// Get epoch time
+epochTime, err := tle.Time()
+
+// Read TLE from file
+tles, err := tle.ReadTLEFile("path/to/tle.txt")
+
+```
+
+### Satellite Operations
+
+```go
+// Create satellite from TLE
+sat := satellite.NewSatelliteFromTLE(tle, gravity)
+
+// Get satellite position at specific time
+lat, lon, alt, vel := sat.Locate(time.Now())
+```
+
+### Constants
 
 ```go
 const DEG2RAD float64 = math.Pi / 180.0
-```
-
-```go
 const RAD2DEG float64 = 180.0 / math.Pi
-```
-
-```go
 const TWOPI float64 = math.Pi * 2.0
-```
-
-```go
 const XPDOTP float64 = 1440.0 / (2.0 * math.Pi)
 ```
 
-#### func  ECIToLLA
+### Time Functions
 
 ```go
-func ECIToLLA(eciCoords Vector3, gmst float64) (altitude, velocity float64, ret LatLong)
-```
-Convert Earth Centered Inertial coordinated into equivalent latitude, longitude,
-altitude and velocity. Reference: http://celestrak.com/columns/v02n03/
+// Calculate Julian Date
+jday := satellite.JDay(year, mon, day, hr, min, sec)
 
-#### func  GSTimeFromDate
+// Calculate Greenwich Mean Sidereal Time
+gmst := satellite.GSTimeFromDate(year, mon, day, hr, min, sec)
+
+// Calculate GMST from Julian date
+theta := satellite.ThetaG_JD(jday)
+```
+
+### Coordinate Conversions
 
 ```go
-func GSTimeFromDate(year, mon, day, hr, min, sec int) float64
-```
-Calc GST given year, month, day, hour, minute and second
+// ECI to Latitude/Longitude/Altitude
+altitude, velocity, latlong := satellite.ECIToLLA(eciCoords, gmst)
 
-#### func  JDay
+// ECI to ECEF
+ecfCoords := satellite.ECIToECEF(eciCoords, gmst)
 
-```go
-func JDay(year, mon, day, hr, min, sec int) float64
-```
-Calc julian date given year, month, day, hour, minute and second the julian date
-is defined by each elapsed day since noon, jan 1, 4713 bc.
-
-#### func  Propagate
-
-```go
-func Propagate(sat Satellite, year int, month int, day, hours, minutes, seconds int) (position, velocity Vector3)
-```
-Calculates position and velocity vectors for given time
-
-#### func  ThetaG_JD
-
-```go
-func ThetaG_JD(jday float64) (ret float64)
-```
-Calculate GMST from Julian date. Reference: The 1992 Astronomical Almanac, page
-B6.
-
-
-#### type LatLong
-
-```go
-type LatLong struct {
-	Latitude, Longitude float64
-}
+// Latitude/Longitude/Altitude to ECI
+eciCoords := satellite.LLAToECI(obsCoords, alt, jday)
 ```
 
-Holds latitude and Longitude in either degrees or radians
+### Types
 
-#### func  LatLongDeg
-
+#### TLE
 ```go
 func LatLongDeg(rad LatLong) (deg LatLong)
 ```
@@ -105,61 +115,49 @@ in km Reference: http://celestrak.com/columns/v02n02/
 
 ```go
 type Satellite struct {
-	Line1 string
-	Line2 string
+    Line1 string
+    Line2 string
 }
 ```
 
-Struct for holding satellite information during and before propagation
-
-#### func  ParseTLE
-
-```go
-func ParseTLE(line1, line2 string, gravConst Gravity) (sat Satellite)
-```
-Parses a two line element dataset into a Satellite struct
-
-#### func  TLEToSat
-
-```go
-func TLEToSat(line1, line2 string, gravConst Gravity) Satellite
-```
-Converts a two line element data set into a Satellite struct and runs sgp4init
-
-#### type Vector3
-
+#### Vector3
 ```go
 type Vector3 struct {
-	X, Y, Z float64
+    X, Y, Z float64
 }
 ```
 
-Holds X, Y, Z position
-
-#### func  ECIToECEF
-
+#### LatLong
 ```go
-func ECIToECEF(eciCoords Vector3, gmst float64) (ecfCoords Vector3)
+type LatLong struct {
+    Latitude, Longitude float64
+}
 ```
-Convert Earth Centered Intertial coordinates into Earth Cenetered Earth Final
-coordinates Reference: http://ccar.colorado.edu/ASEN5070/handouts/coordsys.doc
 
-#### func  LLAToECI
-
+#### LookAngles
 ```go
-func LLAToECI(obsCoords LatLong, alt, jday float64) (eciObs Vector3)
+type LookAngles struct {
+    Az, El, Rg float64
+}
 ```
-Convert latitude, longitude and altitude into equivalent Earth Centered
-Intertial coordinates Reference: The 1992 Astronomical Almanac, page K11.
 
-#### func  NewSpacetrack
-```go
-func NewSpacetrack(username, password string) *Spacetrack
-```
-Initialise a spacetrack API for fetching TLEs
+## Error Handling
 
-#### func  Spacetrack.GetTLE()
-```go
-func (s *Spacetrack) GetTLE(catid uint64, ts time.Time, gravConst Gravity) (Satellite, error)
-```
-Get an initialized Satellite based on the latest TLE before the given time.
+The library now includes proper error handling for TLE parsing and validation:
+- Invalid TLE format
+- Checksum verification
+- Date/time parsing
+- Field validation
+
+## License
+
+This project is licensed under the same terms as the original repository.
+
+## Acknowledgments
+
+- Original implementation by Joshua Ferrara ([github.com/joshuaferrara/go-satellite](https://github.com/joshuaferrara/go-satellite))
+- Based on the SGP4 satellite propagation algorithms
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.

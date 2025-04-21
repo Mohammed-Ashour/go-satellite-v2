@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 const sampleTLE = `STARLINK-1039
@@ -123,4 +124,35 @@ func TestInvalidTLE(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseTLETime(t *testing.T) {
+
+	lines := strings.Split(sampleTLE, "\n")
+
+	curTle, err := ParseTLE(lines[1], lines[2], lines[0])
+	if err != nil {
+		t.Errorf("tle.Time() failed: %v", err)
+	}
+	t.Run("TLETime", func(t *testing.T) {
+		// 2025-01-18T04:16:17.297Z
+		got, err := curTle.Time()
+		if err != nil {
+			t.Errorf("tle.Time() failed: %v", err)
+		}
+		expected := time.Date(
+			2025,         // Year
+			time.January, // Month
+			18,           // Day
+			4,            // Hour
+			16,           // Minute
+			17,           // Second
+			296608000,    // Nanosecond (0.296608 seconds)
+			time.UTC,     // Location
+		)
+
+		if got != expected {
+			t.Errorf("tle.Time() = %v, want %v", got, expected)
+		}
+	})
 }

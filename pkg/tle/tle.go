@@ -3,8 +3,11 @@ package tle
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type TLELine1 struct {
@@ -225,4 +228,77 @@ func ReadTLEFile(filePath string) ([]TLE, error) {
 	}
 
 	return tles, nil
+}
+
+// Time returns the time of the TLE epoch as a time.Time object.
+func (t TLE) Time() (time.Time, error) {
+	tleEpoch := fmt.Sprintf("%s%s", t.Line1.EpochYear, t.Line1.EpochDay)
+	parts := strings.SplitN(tleEpoch, ".", 2)
+	if len(parts) != 2 {
+		return time.Time{}, fmt.Errorf("invalid TLE epoch format: '%s'. Expected format YYDDD.FFFFFFFF", tleEpoch)
+	}
+	yearDayPart := parts[0]
+	fractionalDayPart := "0." + parts[1] // Prepend "0." for float parsing
+
+	// Validate the length of the year/day part (must be 5 digits: YYDDD)
+	if len(yearDayPart) != 5 {
+		return time.Time{}, fmt.Errorf("invalid TLE epoch format: year/day part '%s' must be 5 digits (YYDDD)", yearDayPart)
+	}
+
+	// Extract YY and DDD
+	yearStr := yearDayPart[:2]
+	dayStr := yearDayPart[2:]
+
+	// Parse the two-digit year (YY)
+	yearYY, err := strconv.Atoi(yearStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid TLE epoch: cannot parse year '%s': %w", yearStr, err)
+	}
+
+	// Determine the full year based on the TLE convention
+	var fullYear int
+	if yearYY >= 57 { // Years 57-99 are 1957-1999
+		fullYear = 1900 + yearYY
+	} else { // Years 00-56 are 2000-2056
+		fullYear = 2000 + yearYY
+	}
+
+	// Parse the day of the year (DDD)
+	dayOfYear, err := strconv.Atoi(dayStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid TLE epoch: cannot parse day of year '%s': %w", dayStr, err)
+	}
+
+	// Basic validation for day of year
+	if dayOfYear < 1 || dayOfYear > 366 { // Allow 366 for leap years
+		return time.Time{}, fmt.Errorf("invalid TLE epoch: day of year %d out of range (1-366)", dayOfYear)
+	}
+
+	// Parse the fractional part of the day
+	fractionalDay, err := strconv.ParseFloat(fractionalDayPart, 64)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid TLE epoch: cannot parse fractional day '%s': %w", fractionalDayPart, err)
+	}
+
+	// Check fractional day bounds
+	if fractionalDay < 0.0 || fractionalDay >= 1.0 {
+		return time.Time{}, fmt.Errorf("invalid TLE epoch: fractional day %f out of range [0.0, 1.0)", fractionalDay)
+	}
+
+	// Calculate the start of the given year in UTC [[9]]
+	startOfYear := time.Date(fullYear, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	// Add (dayOfYear - 1) days to get to the start of the specific day
+	targetDayStart := startOfYear.AddDate(0, 0, dayOfYear-1)
+
+	// Calculate the duration represented by the fractional day
+	// Nanoseconds in a day = 24 hours * 60 minutes/hour * 60 seconds/minute * 1e9 nanoseconds/second
+	nanosInDay := 24.0 * 60.0 * 60.0 * 1e9
+	durationNanos := time.Duration(math.Round(fractionalDay * nanosInDay)) // Round to nearest nanosecond
+
+	// Add the duration to the start of the target day
+	finalTime := targetDayStart.Add(durationNanos)
+
+	// Return the final time.Time object in UTC
+	return finalTime.UTC(), nil
 }

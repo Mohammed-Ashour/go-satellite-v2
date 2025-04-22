@@ -119,6 +119,12 @@ type Satellite struct {
 	xlamo float64
 	atime float64
 }
+type LLAPosition struct {
+	Latitude  float64
+	Longitude float64
+	Altitude  float64
+	Velocity  float64
+}
 
 func NewSatelliteFromTLE(tle tle.TLE, gravity Gravity) Satellite {
 	sat := TLEToSat(tle.Line1.LineString, tle.Line2.LineString, gravity)
@@ -126,10 +132,15 @@ func NewSatelliteFromTLE(tle tle.TLE, gravity Gravity) Satellite {
 }
 
 // locate returns the latitude, longitude, altitude, and velocity of the satellite at a given time
-func (sat Satellite) Locate(t time.Time) (latitude float64, longitude float64, altitude float64, velocity float64) {
+func (sat Satellite) Locate(t time.Time) LLAPosition {
 	pos, _ := Propagate(sat, t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute(), t.Second())
 	gmst := GSTimeFromDate(t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute(), t.Second())
 	alt, vel, latlon := ECIToLLA(pos, gmst)
-	return latlon.Latitude, latlon.Longitude, alt, vel
+	return LLAPosition{
+		Latitude:  latlon.Latitude,
+		Longitude: latlon.Longitude,
+		Altitude:  alt,
+		Velocity:  vel,
+	}
 
 }
